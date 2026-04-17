@@ -31,7 +31,6 @@ A comprehensive desktop-based Hospital Management System built with **C# Windows
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [Team](#-team)
-- [Course Information](#-course-information)
 
 ---
 
