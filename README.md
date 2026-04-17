@@ -6,15 +6,15 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=Hospital%20Management%20System&fontSize=40&fontColor=fff&animation=twinkling&fontAlignY=35&desc=A%20full-stack%20web%20application%20to%20digitize%20hospital%20operations&descAlignY=55&descSize=16" width="100%"/>
 
 <br/>
+
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
 ![Windows Forms](https://img.shields.io/badge/Windows_Forms-0078D4?style=for-the-badge&logo=windows&logoColor=white)
 
-
 <br/>
 
-A comprehensive desktop-based Hospital Management System built with **C# Windows Forms** and **Microsoft SQL Server (SSMS)** as part of the Database Management Systems (CSL-220) course at **Bahria University, Karachi Campus**.
+A comprehensive desktop-based Hospital Management System built with **C# Windows Forms** and **Microsoft SQL Server** to streamline and digitize core hospital operations.
 
 </div>
 
@@ -30,7 +30,6 @@ A comprehensive desktop-based Hospital Management System built with **C# Windows
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [Team](#-team)
-- [Course Information](#-course-information)
 
 ---
 
@@ -59,8 +58,6 @@ The system covers everything from patient registration and doctor scheduling to 
 ## 📦 Modules
 
 ### 1. 🧑‍⚕️ Patient Management
-> Assigned to: **Asma Azam**
-
 Handles the complete patient lifecycle within the hospital system.
 
 - New patient registration with personal and medical details
@@ -72,8 +69,6 @@ Handles the complete patient lifecycle within the hospital system.
 ---
 
 ### 2. 👨‍⚕️ Doctor & Appointment Management
-> Assigned to: **Alifya Shabbir**
-
 Manages the hospital's medical staff and patient-doctor scheduling.
 
 - Create and maintain doctor profiles
@@ -85,8 +80,6 @@ Manages the hospital's medical staff and patient-doctor scheduling.
 ---
 
 ### 3. 💊 Pharmacy & Inventory Management
-> Assigned to: **Aliza Ujan**
-
 Keeps track of all medicines and supplies within the hospital pharmacy.
 
 - Add and update medicine stock records
@@ -98,8 +91,6 @@ Keeps track of all medicines and supplies within the hospital pharmacy.
 ---
 
 ### 4. 🧾 Billing & Reports
-> Assigned to: **Muhammad Hammad Asher (Team Lead)**
-
 Handles financial transactions and generates summary reports for administration.
 
 - Generate itemized patient invoices
@@ -116,16 +107,16 @@ Handles financial transactions and generates summary reports for administration.
 |-------|-----------|
 | Frontend / UI | C# Windows Forms (.NET) |
 | Backend / Logic | C# (OOP — Classes, Methods, Events) |
-| Database | Microsoft SQL Server (SSMS) |
+| Database | Microsoft SQL Server |
 | Query Language | T-SQL (DDL, DML, TCL, stored procedures) |
-| IDE | Visual Studio 2022 |
+| IDE | Visual Studio |
 | DB Tool | SQL Server Management Studio (SSMS) |
 
 ---
 
 ## 🗄️ Database Design
 
-The database is designed following proper relational database principles covered in the DBMS course:
+The database is designed following proper relational database principles:
 
 - **ER Modeling** — Entity-Relationship diagram with crow's foot notation
 - **Normalization** — Schema normalized up to **BCNF**
@@ -135,126 +126,3 @@ The database is designed following proper relational database principles covered
 - **Views** — Simplified data access for reporting
 
 ### Key Tables
-
-```
-Patients          — Patient personal and contact information
-Doctors           — Doctor profiles and specializations
-Departments       — Hospital departments
-Appointments      — Patient-doctor appointment records
-MedicalHistory    — Patient diagnoses and treatment records
-Medicines         — Medicine catalog and stock levels
-Prescriptions     — Issued medicines per patient visit
-Suppliers         — Pharmacy supplier details
-Billing           — Invoice and payment records
-```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Visual Studio 2022 (or later)
-- .NET Framework 4.7.2+
-- Microsoft SQL Server 2019+ (Developer or Express Edition)
-- SQL Server Management Studio (SSMS)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/hammadasher100/hospital-management-system.git
-   cd hospital-management-system
-   ```
-
-2. **Set up the database**
-   - Open SSMS and connect to your local SQL Server instance
-   - Open and execute `database/schema.sql` to create tables and constraints
-   - Execute `database/seed.sql` to load sample data (optional)
-   - Execute `database/stored_procedures.sql` to create all stored procedures
-
-3. **Configure the connection string**
-   - Open `App.config` in Visual Studio
-   - Update the connection string to match your SQL Server instance:
-   ```xml
-   <connectionStrings>
-     <add name="HMSConnection"
-          connectionString="Server=YOUR_SERVER_NAME;Database=HospitalDB;Integrated Security=True;"
-          providerName="System.Data.SqlClient"/>
-   </connectionStrings>
-   ```
-
-4. **Build and run**
-   - Open `HospitalManagementSystem.sln` in Visual Studio
-   - Press `Ctrl+Shift+B` to build the solution
-   - Press `F5` to run
-
----
-
-## 📁 Project Structure
-
-```
-hospital-management-system/
-│
-├── HospitalManagementSystem/          # Main C# Windows Forms project
-│   ├── Forms/                         # All Windows Forms (.cs + .Designer.cs)
-│   │   ├── MainDashboard.cs
-│   │   ├── PatientManagement/
-│   │   ├── DoctorAppointments/
-│   │   ├── PharmacyInventory/
-│   │   └── BillingReports/
-│   ├── Models/                        # C# model classes
-│   ├── DAL/                           # Data Access Layer (SQL queries)
-│   ├── App.config                     # Connection string config
-│   └── Program.cs
-│
-├── database/
-│   ├── schema.sql                     # Table definitions + constraints
-│   ├── stored_procedures.sql          # All stored procedures
-│   ├── views.sql                      # Database views
-│   ├── seed.sql                       # Sample test data
-│   └── ER_Diagram.png                 # Entity-Relationship diagram
-│
-├── docs/
-│   ├── Project_Proposal.docx
-│   └── Screenshots/
-│
-└── README.md
-```
-
----
-
-## 👥 Team
-
-| Name | Role | Module |
-|------|------|--------|
-| **Muhammad Hammad Asher** | Team Lead | Billing & Reports + DB Design |
-| **Asma Azam** | Member | Patient Management |
-| **Alifya Shabbir** | Member | Doctor & Appointment Management |
-| **Aliza Ujan** | Member | Pharmacy & Inventory Management |
-
----
-
-## 📚 Course Information
-
-| Field | Detail |
-|-------|--------|
-| Course | Database Management Systems |
-| Code | CSL-220 |
-| University | Bahria University, Karachi Campus |
-| Department | Software Engineering |
-| Course Instructor | Engr. Muhammad Faisal |
-| Lab Instructor | Engr. Ammara Naz |
-| Class | BSE-6 (A/C) |
-
----
-
-## 📄 License
-
-This project is developed for academic purposes as part of the BSE curriculum at Bahria University, Karachi Campus.
-
----
-
-<div align="center">
-  Made with ❤️ by Group HMS — BSE-6, Bahria University Karachi
-</div>
