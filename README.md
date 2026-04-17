@@ -1,5 +1,18 @@
 # 🏥 Hospital Management System
 
+<div align="center">
+
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
+![Windows Forms](https://img.shields.io/badge/Windows_Forms-0078D4?style=for-the-badge&logo=windows&logoColor=white)
+
+A comprehensive desktop-based Hospital Management System built with **C# Windows Forms** and **Microsoft SQL Server (SSMS)** as part of the Database Management Systems (CSL-220) course at **Bahria University, Karachi Campus**.
+
+</div>
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
