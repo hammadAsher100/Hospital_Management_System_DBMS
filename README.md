@@ -2,10 +2,17 @@
 
 <div align="center">
 
+<!-- Animated Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=Hospital%20Management%20System&fontSize=40&fontColor=fff&animation=twinkling&fontAlignY=35&desc=A%20full-stack%20web%20application%20to%20digitize%20hospital%20operations&descAlignY=55&descSize=16" width="100%"/>
+
+<br/>
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
 ![Windows Forms](https://img.shields.io/badge/Windows_Forms-0078D4?style=for-the-badge&logo=windows&logoColor=white)
+
+
+<br/>
 
 A comprehensive desktop-based Hospital Management System built with **C# Windows Forms** and **Microsoft SQL Server (SSMS)** as part of the Database Management Systems (CSL-220) course at **Bahria University, Karachi Campus**.
 
