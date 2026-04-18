@@ -163,8 +163,8 @@ Billing           — Invoice and payment records
 
 1. **Clone the repository**
    ```bash
-   git clone [https://github.com/hammadasher100/hospital-management-system.git](https://github.com/hammadAsher100/Hospital_Management_System_DBMS.git)
-   cd hospital-management-system
+   git clone [https://github.com/hammadAsher100/Hospital_Management_System_DBMS.git]
+   cd Hospital_Management_System_DBMS
    ```
 
 2. **Set up the database**
