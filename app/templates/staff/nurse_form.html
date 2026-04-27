@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Add Nurse{% endblock %}
+{% block page_title %}Add Nurse{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header"><i class="bi bi-heart-pulse me-2"></i>Add New Nurse</div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <h6 class="text-muted mb-3">Personal Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label required">First Name</label>
+                            <input type="text" name="first_name" class="form-control hms-input" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Last Name</label>
+                            <input type="text" name="last_name" class="form-control hms-input" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" name="phone" class="form-control hms-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assigned Ward</label>
+                            <input type="text" name="assigned_ward" class="form-control hms-input" placeholder="e.g. ICU, Pediatrics">
+                        </div>
+                    </div>
+                    <h6 class="text-muted mb-3">Login Credentials</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Username</label>
+                            <input type="text" name="username" class="form-control hms-input" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Email</label>
+                            <input type="email" name="email" class="form-control hms-input" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Password</label>
+                            <input type="password" name="password" class="form-control hms-input" required minlength="6">
+                        </div>
+                        <div class="col-12 border-top pt-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-hms-primary">Add Nurse</button>
+                            <a href="{{ url_for('staff.list_staff') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Record Payment{% endblock %}
+{% block page_title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header"><i class="bi bi-cash me-2"></i>Record Payment — Bill #{{ bill.bill_id }}</div>
+            <div class="card-body p-4">
+                <div class="billing-summary mb-4 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Patient</span><span class="fw-medium">{{ bill.patient.full_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Bill Total</span><span class="fw-medium">Rs. {{ "%.2f"|format(bill.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Already Paid</span><span class="text-success fw-medium">Rs. {{ "%.2f"|format(bill.paid_amount) }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-semibold">Balance Due</span>
+                        <span class="fw-bold text-danger fs-5">Rs. {{ "%.2f"|format(bill.get_balance()) }}</span>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label required">Payment Amount (Rs.)</label>
+                        <input type="number" name="amount" class="form-control hms-input"
+                               step="0.01" min="0.01" max="{{ bill.get_balance() }}"
+                               value="{{ "%.2f"|format(bill.get_balance()) }}" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label required">Payment Method</label>
+                        <select name="payment_method" class="form-select hms-input" required>
+                            {% for m in ['Cash', 'Card', 'Bank Transfer', 'Insurance', 'Online'] %}
+                            <option value="{{ m }}" {% if bill.payment_method == m %}selected{% endif %}>{{ m }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>Record Payment
+                        </button>
+                        <a href="{{ url_for('billing.view_bill', id=bill.bill_id) }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

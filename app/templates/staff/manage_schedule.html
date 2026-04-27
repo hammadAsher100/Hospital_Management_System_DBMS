@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Doctor Schedule{% endblock %}
+{% block page_title %}Manage Schedule{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header">
+                <i class="bi bi-calendar3 me-2"></i>Schedule — {{ doctor.full_name }}
+                <span class="badge bg-primary ms-2">{{ doctor.specialization }}</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" id="scheduleForm">
+                    <div class="schedule-grid">
+                        {% set day_names = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                        {% for i in range(7) %}
+                        {% set sched = schedules.get(i) %}
+                        <div class="schedule-row {% if sched %}has-schedule{% endif %}" id="day-{{ i }}">
+                            <div class="schedule-day-label">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox"
+                                           id="chk-{{ i }}" data-day="{{ i }}"
+                                           {% if sched %}checked{% endif %}
+                                           onchange="toggleDay({{ i }})">
+                                    <label class="form-check-label fw-medium" for="chk-{{ i }}">
+                                        {{ day_names[i] }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="schedule-fields" id="fields-{{ i }}" {% if not sched %}style="display:none"{% endif %}>
+                                <input type="hidden" name="day_of_week" value="{{ i }}" class="day-value">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-auto">
+                                        <label class="form-label small mb-1">Start</label>
+                                        <input type="time" name="start_time" class="form-control form-control-sm hms-input"
+                                               value="{{ sched.start_time.strftime('%H:%M') if sched else '09:00' }}">
+                                    </div>
+                                    <div class="col-auto">
+                                        <label class="form-label small mb-1">End</label>
+                                        <input type="time" name="end_time" class="form-control form-control-sm hms-input"
+                                               value="{{ sched.end_time.strftime('%H:%M') if sched else '17:00' }}">
+                                    </div>
+                                    <div class="col-auto">
+                                        <label class="form-label small mb-1">Max Appts</label>
+                                        <input type="number" name="max_appointments" class="form-control form-control-sm hms-input"
+                                               style="width:80px" min="1" max="50"
+                                               value="{{ sched.max_appointments if sched else 10 }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="border-top pt-3 mt-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-hms-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Schedule
+                        </button>
+                        <a href="{{ url_for('staff.list_staff') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleDay(dayIndex) {
+    const checkbox = document.getElementById(`chk-${dayIndex}`);
+    const fields = document.getElementById(`fields-${dayIndex}`);
+    const row = document.getElementById(`day-${dayIndex}`);
+    const dayInputs = fields.querySelectorAll('.day-value');
+
+    if (checkbox.checked) {
+        fields.style.display = 'block';
+        row.classList.add('has-schedule');
+        dayInputs.forEach(inp => inp.disabled = false);
+    } else {
+        fields.style.display = 'none';
+        row.classList.remove('has-schedule');
+        dayInputs.forEach(inp => inp.disabled = true);
+    }
+}
+
+// Disable hidden day inputs on load
+document.querySelectorAll('.day-checkbox').forEach(chk => {
+    if (!chk.checked) {
+        const fields = document.getElementById(`fields-${chk.dataset.day}`);
+        fields.querySelectorAll('.day-value').forEach(inp => inp.disabled = true);
+    }
+});
+</script>
+{% endblock %}

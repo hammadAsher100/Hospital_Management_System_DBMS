@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment{% endblock %}
+{% block page_title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header"><i class="bi bi-calendar-plus me-2"></i>Book New Appointment</div>
+            <div class="card-body p-4">
+                <form method="POST" id="bookForm">
+                    <div class="mb-3">
+                        <label class="form-label required">Patient</label>
+                        <select name="patient_id" class="form-select hms-input" required>
+                            <option value="">Select patient...</option>
+                            {% for p in patients %}
+                            <option value="{{ p.patient_id }}" {% if preselect_patient == p.patient_id %}selected{% endif %}>
+                                {{ p.full_name }} — {{ p.phone }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Doctor</label>
+                        <select name="doctor_id" class="form-select hms-input" id="doctorSelect" required>
+                            <option value="">Select doctor...</option>
+                            {% for d in doctors %}
+                            <option value="{{ d.doctor_id }}">{{ d.full_name }} — {{ d.specialization }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Date</label>
+                        <input type="date" name="appointment_date" class="form-control hms-input" id="apptDate"
+                               min="{{ now.strftime('%Y-%m-%d') if now else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Time</label>
+                        <div id="slotsContainer" class="mb-2"></div>
+                        <input type="time" name="appointment_time" class="form-control hms-input" id="apptTime" required>
+                        <small class="text-muted">Available slots will appear above once you select doctor and date.</small>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Reason for Visit</label>
+                        <textarea name="reason" class="form-control hms-input" rows="3" placeholder="Brief description of symptoms or purpose of visit"></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-hms-primary">
+                            <i class="bi bi-check-lg me-1"></i>Confirm Booking
+                        </button>
+                        <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const doctorSelect = document.getElementById('doctorSelect');
+const dateInput = document.getElementById('apptDate');
+const timeInput = document.getElementById('apptTime');
+const slotsContainer = document.getElementById('slotsContainer');
+
+function loadSlots() {
+    const doctorId = doctorSelect.value;
+    const date = dateInput.value;
+    if (!doctorId || !date) return;
+
+    slotsContainer.innerHTML = '<small class="text-muted">Loading slots...</small>';
+
+    fetch(`/appointments/api/available-slots?doctor_id=${doctorId}&date=${date}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.error || (data.message && !data.slots.length)) {
+                slotsContainer.innerHTML = `<div class="alert alert-warning py-2 small">${data.message || data.error}</div>`;
+                return;
+            }
+            if (!data.slots.length) {
+                slotsContainer.innerHTML = '<div class="alert alert-info py-2 small">No schedule defined for this day.</div>';
+                return;
+            }
+            let html = '<div class="slot-grid">';
+            data.slots.forEach(slot => {
+                const cls = slot.available ? 'slot-available' : 'slot-taken';
+                const disabled = slot.available ? '' : 'disabled';
+                html += `<button type="button" class="slot-btn ${cls}" ${disabled} onclick="selectSlot('${slot.time}')">${slot.time}</button>`;
+            });
+            html += '</div>';
+            slotsContainer.innerHTML = html;
+        })
+        .catch(() => slotsContainer.innerHTML = '<small class="text-danger">Error loading slots.</small>');
+}
+
+function selectSlot(time) {
+    timeInput.value = time;
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('slot-selected'));
+    event.target.classList.add('slot-selected');
+}
+
+doctorSelect.addEventListener('change', loadSlots);
+dateInput.addEventListener('change', loadSlots);
+</script>
+{% endblock %}

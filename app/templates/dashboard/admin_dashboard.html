@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-number">{{ total_patients }}</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+            <a href="{{ url_for('patients.list_patients') }}" class="stat-link">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-green">
+            <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-number">{{ today_appointments }}</div>
+                <div class="stat-label">Today's Appointments</div>
+            </div>
+            <a href="{{ url_for('appointments.list_appointments') }}" class="stat-link">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-purple">
+            <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="stat-content">
+                <div class="stat-number">{{ "%.0f"|format(monthly_revenue) }}</div>
+                <div class="stat-label">Monthly Revenue (Rs.)</div>
+            </div>
+            <a href="{{ url_for('billing.list_bills') }}" class="stat-link">View bills <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card {% if low_stock_count > 0 %}stat-card-red{% else %}stat-card-teal{% endif %}">
+            <div class="stat-icon"><i class="bi bi-capsule-pill"></i></div>
+            <div class="stat-content">
+                <div class="stat-number">{{ low_stock_count }}</div>
+                <div class="stat-label">Low Stock Items</div>
+            </div>
+            <a href="{{ url_for('pharmacy.list_medicines') }}" class="stat-link">View inventory <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Revenue Chart -->
+    <div class="col-lg-8">
+        <div class="card hms-card h-100">
+            <div class="card-header hms-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up me-2"></i>Revenue — Last 7 Days</span>
+                <a href="{{ url_for('admin.report_revenue') }}" class="btn btn-sm btn-outline-primary">Full Report</a>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card hms-card h-100">
+            <div class="card-header hms-card-header"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('patients.add_patient') }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-person-plus me-2"></i>Register Patient
+                    </a>
+                    <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-outline-success text-start">
+                        <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+                    </a>
+                    <a href="{{ url_for('billing.generate_bill') }}" class="btn btn-outline-warning text-start">
+                        <i class="bi bi-receipt me-2"></i>Generate Bill
+                    </a>
+                    <a href="{{ url_for('pharmacy.add_prescription') }}" class="btn btn-outline-info text-start">
+                        <i class="bi bi-file-medical me-2"></i>New Prescription
+                    </a>
+                    <a href="{{ url_for('staff.add_doctor') }}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-person-badge me-2"></i>Add Doctor
+                    </a>
+                </div>
+                {% if pending_bills_count > 0 %}
+                <div class="alert alert-warning mt-3 mb-0 py-2">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ pending_bills_count }} pending bills
+                    <a href="{{ url_for('billing.list_bills', status='pending') }}" class="alert-link ms-1">View →</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Today's Appointments -->
+    <div class="col-lg-6">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-day me-2"></i>Today's Appointments</span>
+                <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if todays_appts %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                        {% for appt in todays_appts %}
+                        <tr>
+                            <td class="mono-text">{{ appt.appointment_time.strftime('%H:%M') }}</td>
+                            <td><a href="{{ url_for('patients.view_patient', id=appt.patient_id) }}" class="text-decoration-none">{{ appt.patient.full_name }}</a></td>
+                            <td>{{ appt.doctor.full_name }}</td>
+                            <td><span class="badge bg-{{ appt.status_badge }}">{{ appt.status.title() }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-4">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>No appointments today</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Patients -->
+    <div class="col-lg-6">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-person-lines-fill me-2"></i>Recent Patients</span>
+                <a href="{{ url_for('patients.list_patients') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_patients %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Patient</th><th>Gender</th><th>Phone</th><th>Registered</th></tr>
+                        </thead>
+                        <tbody>
+                        {% for p in recent_patients %}
+                        <tr>
+                            <td><a href="{{ url_for('patients.view_patient', id=p.patient_id) }}" class="text-decoration-none fw-medium">{{ p.full_name }}</a></td>
+                            <td>{{ p.gender }}</td>
+                            <td class="mono-text">{{ p.phone }}</td>
+                            <td>{{ p.registration_date.strftime('%d %b') }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-4">
+                    <i class="bi bi-people"></i>
+                    <p>No patients registered</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const revenueData = {{ revenue_data | tojson }};
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: revenueData.map(d => d.date),
+        datasets: [{
+            label: 'Revenue (Rs.)',
+            data: revenueData.map(d => d.amount),
+            backgroundColor: 'rgba(67, 120, 244, 0.15)',
+            borderColor: '#4378f4',
+            borderWidth: 2,
+            borderRadius: 6,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

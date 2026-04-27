@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient.full_name }}{% endblock %}
+{% block page_title %}Patient Detail{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Patient header card -->
+    <div class="col-12">
+        <div class="card hms-card patient-header-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="patient-avatar">{{ patient.first_name[0] }}{{ patient.last_name[0] }}</div>
+                        <div>
+                            <h4 class="mb-1">{{ patient.full_name }}</h4>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="text-muted mono-text">P-{{ "%04d"|format(patient.patient_id) }}</span>
+                                <span class="badge bg-secondary">{{ patient.age }} yrs</span>
+                                <span class="badge bg-info-subtle text-info">{{ patient.gender }}</span>
+                                {% if patient.blood_group %}<span class="badge bg-danger-subtle text-danger">{{ patient.blood_group }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('patients.edit_patient', id=patient.patient_id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <a href="{{ url_for('appointments.book_appointment') }}?patient_id={{ patient.patient_id }}" class="btn btn-hms-primary btn-sm">
+                            <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+                        </a>
+                        <a href="{{ url_for('billing.generate_bill') }}?patient_id={{ patient.patient_id }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-receipt me-1"></i>Generate Bill
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="col-12">
+        <ul class="nav nav-tabs hms-tabs mb-4">
+            <li class="nav-item"><a class="nav-link {% if tab == 'info' %}active{% endif %}" href="?tab=info"><i class="bi bi-person me-1"></i>Information</a></li>
+            <li class="nav-item"><a class="nav-link {% if tab == 'appointments' %}active{% endif %}" href="?tab=appointments"><i class="bi bi-calendar me-1"></i>Appointments</a></li>
+            <li class="nav-item"><a class="nav-link {% if tab == 'prescriptions' %}active{% endif %}" href="?tab=prescriptions"><i class="bi bi-file-medical me-1"></i>Prescriptions</a></li>
+            <li class="nav-item"><a class="nav-link {% if tab == 'bills' %}active{% endif %}" href="?tab=bills"><i class="bi bi-receipt me-1"></i>Billing</a></li>
+        </ul>
+
+        {% if tab == 'info' %}
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card hms-card">
+                    <div class="card-header hms-card-header">Personal Information</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Full Name</dt><dd class="col-sm-7">{{ patient.full_name }}</dd>
+                            <dt class="col-sm-5">Date of Birth</dt><dd class="col-sm-7">{{ patient.dob.strftime('%d %b %Y') }}</dd>
+                            <dt class="col-sm-5">Age</dt><dd class="col-sm-7">{{ patient.age }} years</dd>
+                            <dt class="col-sm-5">Gender</dt><dd class="col-sm-7">{{ patient.gender }}</dd>
+                            <dt class="col-sm-5">Blood Group</dt><dd class="col-sm-7">{{ patient.blood_group or '—' }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card hms-card">
+                    <div class="card-header hms-card-header">Contact & Medical</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Phone</dt><dd class="col-sm-7 mono-text">{{ patient.phone }}</dd>
+                            <dt class="col-sm-5">Email</dt><dd class="col-sm-7">{{ patient.email or '—' }}</dd>
+                            <dt class="col-sm-5">Address</dt><dd class="col-sm-7">{{ patient.address or '—' }}</dd>
+                            <dt class="col-sm-5">Emergency</dt><dd class="col-sm-7">{{ patient.emergency_contact or '—' }}</dd>
+                            <dt class="col-sm-5">Allergies</dt>
+                            <dd class="col-sm-7">
+                                {% if patient.allergies %}
+                                <span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ patient.allergies }}</span>
+                                {% else %}None{% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% elif tab == 'appointments' %}
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between">
+                <span>Appointment History</span>
+                <a href="{{ url_for('appointments.book_appointment') }}?patient_id={{ patient.patient_id }}" class="btn btn-sm btn-hms-primary">
+                    <i class="bi bi-calendar-plus me-1"></i>Book New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if patient.appointments.count() %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                        {% for appt in patient.appointments.order_by(false()) | sort(attribute='appointment_date', reverse=True) %}
+                        <tr>
+                            <td>{{ appt.appointment_date.strftime('%d %b %Y') }}</td>
+                            <td class="mono-text">{{ appt.appointment_time.strftime('%H:%M') }}</td>
+                            <td>{{ appt.doctor.full_name }}</td>
+                            <td>{{ appt.reason or '—' }}</td>
+                            <td><span class="badge bg-{{ appt.status_badge }}">{{ appt.status.title() }}</span></td>
+                            <td><a href="{{ url_for('appointments.view_appointment', id=appt.appointment_id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-4"><i class="bi bi-calendar-x"></i><p>No appointments yet</p></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% elif tab == 'prescriptions' %}
+        <div class="card hms-card">
+            <div class="card-header hms-card-header">Prescriptions</div>
+            <div class="card-body p-0">
+                {% if patient.prescriptions.count() %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Date</th><th>Doctor</th><th>Items</th><th>Status</th></tr></thead>
+                        <tbody>
+                        {% for rx in patient.prescriptions.order_by(false()) | sort(attribute='prescribed_date', reverse=True) %}
+                        <tr>
+                            <td>{{ rx.prescribed_date.strftime('%d %b %Y') }}</td>
+                            <td>{{ rx.doctor.full_name }}</td>
+                            <td>{{ rx.items|length }} medicine(s)</td>
+                            <td><span class="badge bg-{{ 'success' if rx.is_dispensed else 'warning' }}">{{ 'Dispensed' if rx.is_dispensed else 'Pending' }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-4"><i class="bi bi-file-medical"></i><p>No prescriptions yet</p></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% elif tab == 'bills' %}
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between">
+                <span>Billing History</span>
+                <a href="{{ url_for('billing.generate_bill') }}?patient_id={{ patient.patient_id }}" class="btn btn-sm btn-hms-primary">
+                    <i class="bi bi-receipt me-1"></i>New Bill
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if patient.bills.count() %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Bill #</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                        {% for bill in patient.bills.order_by(false()) | sort(attribute='bill_date', reverse=True) %}
+                        <tr>
+                            <td class="mono-text">#{{ bill.bill_id }}</td>
+                            <td>{{ bill.bill_date.strftime('%d %b %Y') }}</td>
+                            <td>Rs. {{ "%.2f"|format(bill.total_amount) }}</td>
+                            <td>Rs. {{ "%.2f"|format(bill.paid_amount) }}</td>
+                            <td>Rs. {{ "%.2f"|format(bill.get_balance()) }}</td>
+                            <td><span class="badge bg-{{ bill.status_badge }}">{{ bill.status.title() }}</span></td>
+                            <td><a href="{{ url_for('billing.view_bill', id=bill.bill_id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-4"><i class="bi bi-receipt"></i><p>No bills yet</p></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

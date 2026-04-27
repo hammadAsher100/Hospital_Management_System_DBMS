@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Revenue Report{% endblock %}
+{% block page_title %}Revenue Reports{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card stat-card-green">
+            <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="stat-content"><div class="stat-number">{{ "%.0f"|format(total_revenue) }}</div><div class="stat-label">Total Revenue (Rs.)</div></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-red">
+            <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+            <div class="stat-content"><div class="stat-number">{{ "%.0f"|format(total_pending) }}</div><div class="stat-label">Outstanding (Rs.)</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card hms-card mb-4">
+    <div class="card-header hms-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart me-2"></i>Revenue Trend</span>
+        <form class="d-flex gap-2" method="GET">
+            <select name="period" class="form-select form-select-sm hms-input" onchange="this.form.submit()">
+                <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option>
+                <option value="daily" {% if period == 'daily' %}selected{% endif %}>Daily (30 days)</option>
+                <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option>
+            </select>
+        </form>
+    </div>
+    <div class="card-body"><canvas id="revenueChart" height="80"></canvas></div>
+</div>
+
+<div class="card hms-card">
+    <div class="card-header hms-card-header"><i class="bi bi-table me-2"></i>Revenue Data</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Period</th><th>Total Billed</th><th>Total Collected</th><th>Outstanding</th></tr>
+                </thead>
+                <tbody>
+                {% for row in data %}
+                <tr>
+                    <td class="mono-text">{{ row[0] }}</td>
+                    <td>Rs. {{ "%.2f"|format(row[1] or 0) }}</td>
+                    <td class="text-success">Rs. {{ "%.2f"|format(row[2] or 0) }}</td>
+                    <td class="{{ 'text-danger' if (row[1] or 0) - (row[2] or 0) > 0 else 'text-muted' }}">
+                        Rs. {{ "%.2f"|format((row[1] or 0) - (row[2] or 0)) }}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 d-flex gap-2">
+    <a href="{{ url_for('billing.export_bills') }}" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i>Export CSV</a>
+    <a href="{{ url_for('admin.report_patients') }}" class="btn btn-outline-primary"><i class="bi bi-people me-1"></i>Patient Report</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const revenueData = {{ data | tojson }};
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: revenueData.map(d => String(d[0])),
+        datasets: [
+            { label: 'Billed', data: revenueData.map(d => d[1] || 0), backgroundColor: 'rgba(67,120,244,0.2)', borderColor: '#4378f4', borderWidth: 2, borderRadius: 4 },
+            { label: 'Collected', data: revenueData.map(d => d[2] || 0), backgroundColor: 'rgba(16,185,129,0.2)', borderColor: '#10b981', borderWidth: 2, borderRadius: 4 }
+        ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } } }
+});
+</script>
+{% endblock %}

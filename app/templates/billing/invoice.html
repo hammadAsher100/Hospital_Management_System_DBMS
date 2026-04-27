@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ bill.bill_id }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; color: #1a1a2e; background: #fff; font-size: 14px; }
+        .invoice-wrapper { max-width: 780px; margin: 40px auto; padding: 48px; border: 1px solid #e5e7eb; border-radius: 12px; }
+        .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+        .brand h1 { font-size: 24px; font-weight: 700; color: #4378f4; }
+        .brand p { color: #6b7280; font-size: 13px; margin-top: 2px; }
+        .invoice-meta { text-align: right; }
+        .invoice-meta h2 { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+        .invoice-meta .inv-number { color: #6b7280; font-size: 13px; }
+        .invoice-meta .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 6px; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-pending { background: #fee2e2; color: #991b1b; }
+        .status-partial { background: #fef3c7; color: #92400e; }
+        .bill-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6; }
+        .party-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 8px; }
+        .party-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .party-detail { color: #6b7280; font-size: 13px; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        thead th { background: #f9fafb; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
+        thead th.num { text-align: right; }
+        tbody td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        tbody td.num { text-align: right; font-family: 'DM Mono', monospace; }
+        tbody tr:last-child td { border-bottom: none; }
+        .totals { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e5e7eb; }
+        .total-row { display: flex; gap: 48px; justify-content: flex-end; font-size: 14px; }
+        .total-row .label { color: #6b7280; }
+        .total-row .amount { font-family: 'DM Mono', monospace; width: 120px; text-align: right; }
+        .total-row.grand { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .total-row.balance { color: #dc2626; font-weight: 600; }
+        .total-row.paid-row { color: #059669; }
+        .invoice-footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .footer-note { color: #9ca3af; font-size: 12px; }
+        .print-btn { position: fixed; bottom: 24px; right: 24px; background: #4378f4; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(67,120,244,0.3); }
+        @media print {
+            body { background: #fff; }
+            .invoice-wrapper { border: none; margin: 0; padding: 32px; max-width: 100%; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="invoice-wrapper">
+    <div class="invoice-header">
+        <div class="brand">
+            <h1>🏥 MediCore HMS</h1>
+            <p>Hospital Management System</p>
+            <p style="margin-top:4px; color:#6b7280; font-size:12px;">123 Healthcare Avenue, City</p>
+        </div>
+        <div class="invoice-meta">
+            <h2>INVOICE</h2>
+            <div class="inv-number">Bill #{{ bill.bill_id }}</div>
+            <div class="inv-number">{{ bill.bill_date.strftime('%d %B %Y') }}</div>
+            <div class="status-badge status-{{ bill.status }}">{{ bill.status.upper() }}</div>
+        </div>
+    </div>
+
+    <div class="bill-parties">
+        <div>
+            <div class="party-label">Billed To</div>
+            <div class="party-name">{{ bill.patient.full_name }}</div>
+            <div class="party-detail">
+                {{ bill.patient.phone }}<br>
+                {% if bill.patient.email %}{{ bill.patient.email }}<br>{% endif %}
+                {% if bill.patient.address %}{{ bill.patient.address }}{% endif %}
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div class="party-label">Payment Info</div>
+            <div class="party-detail">
+                {% if bill.payment_method %}Method: {{ bill.payment_method }}<br>{% endif %}
+                {% if bill.appointment_id %}Ref: Appointment #{{ bill.appointment_id }}<br>{% endif %}
+                Patient ID: P-{{ "%04d"|format(bill.patient_id) }}
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:44px">#</th>
+                <th>Description</th>
+                <th class="num" style="width:60px">Qty</th>
+                <th class="num" style="width:130px">Unit Price</th>
+                <th class="num" style="width:130px">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bill.items %}
+            <tr>
+                <td style="color:#9ca3af">{{ loop.index }}</td>
+                <td>{{ item.description }}</td>
+                <td class="num">{{ item.quantity }}</td>
+                <td class="num">Rs. {{ "%.2f"|format(item.unit_price) }}</td>
+                <td class="num" style="font-weight:600">Rs. {{ "%.2f"|format(item.total_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="total-row grand">
+            <span class="label">Total Amount</span>
+            <span class="amount">Rs. {{ "%.2f"|format(bill.total_amount) }}</span>
+        </div>
+        <div class="total-row paid-row">
+            <span class="label">Amount Paid</span>
+            <span class="amount">Rs. {{ "%.2f"|format(bill.paid_amount) }}</span>
+        </div>
+        {% if bill.get_balance() > 0 %}
+        <div class="total-row balance">
+            <span class="label">Balance Due</span>
+            <span class="amount">Rs. {{ "%.2f"|format(bill.get_balance()) }}</span>
+        </div>
+        {% else %}
+        <div class="total-row paid-row">
+            <span class="label">✓ Fully Paid</span>
+            <span class="amount">Rs. 0.00</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="invoice-footer">
+        <div class="footer-note">
+            Thank you for choosing MediCore HMS.<br>
+            For queries, contact billing@medicore.hospital
+        </div>
+        <div class="footer-note" style="text-align:right;">
+            Generated: {{ bill.bill_date.strftime('%d %b %Y %H:%M') }}<br>
+            This is a computer-generated invoice.
+        </div>
+    </div>
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨 Print Invoice</button>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Generate Bill{% endblock %}
+{% block page_title %}Generate Bill{% endblock %}
+
+{% block content %}
+<div class="card hms-card">
+    <div class="card-header hms-card-header"><i class="bi bi-receipt me-2"></i>Generate New Bill</div>
+    <div class="card-body p-4">
+        <form method="POST" id="billForm">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label required">Patient</label>
+                    <select name="patient_id" class="form-select hms-input" required>
+                        <option value="">Select patient...</option>
+                        {% for p in patients %}
+                        <option value="{{ p.patient_id }}" {% if preselect == p.patient_id %}selected{% endif %}>
+                            {{ p.full_name }} — {{ p.phone }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Link to Appointment (optional)</label>
+                    <select name="appointment_id" class="form-select hms-input">
+                        <option value="">None</option>
+                        {% for a in appointments %}
+                        <option value="{{ a.appointment_id }}">
+                            #{{ a.appointment_id }} — {{ a.patient.full_name }} — {{ a.appointment_date.strftime('%d %b %Y') }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payment Method</label>
+                    <select name="payment_method" class="form-select hms-input">
+                        <option value="">Select...</option>
+                        {% for m in ['Cash', 'Card', 'Bank Transfer', 'Insurance', 'Online'] %}
+                        <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bill Items -->
+            <h6 class="fw-semibold mb-3">Bill Items</h6>
+            <div id="billItems">
+                <div class="row g-2 align-items-end mb-2 bill-item-row">
+                    <div class="col-md-5">
+                        <label class="form-label small">Description</label>
+                        <input type="text" name="description[]" class="form-control form-control-sm hms-input" placeholder="e.g. Consultation fee" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Qty</label>
+                        <input type="number" name="quantity[]" class="form-control form-control-sm hms-input qty-input" min="1" value="1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Unit Price (Rs.)</label>
+                        <input type="number" name="unit_price[]" class="form-control form-control-sm hms-input price-input" min="0" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label small">Total</label>
+                        <div class="item-total fw-medium pt-1 mono-text">0.00</div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-item" style="display:none"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addItem()">
+                <i class="bi bi-plus-circle me-1"></i>Add Item
+            </button>
+
+            <div class="border-top mt-4 pt-3 d-flex justify-content-between align-items-center">
+                <div class="fs-5 fw-bold">Grand Total: Rs. <span id="grandTotal">0.00</span></div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-hms-primary">Generate Bill</button>
+                    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateTotals() {
+    let grand = 0;
+    document.querySelectorAll('.bill-item-row').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const total = qty * price;
+        row.querySelector('.item-total').textContent = total.toFixed(2);
+        grand += total;
+    });
+    document.getElementById('grandTotal').textContent = grand.toFixed(2);
+}
+
+function addItem() {
+    const container = document.getElementById('billItems');
+    const first = container.querySelector('.bill-item-row');
+    const clone = first.cloneNode(true);
+    clone.querySelectorAll('input').forEach(inp => inp.value = inp.type === 'number' ? (inp.classList.contains('qty-input') ? 1 : '') : '');
+    clone.querySelector('.item-total').textContent = '0.00';
+    clone.querySelector('.remove-item').style.display = 'inline-block';
+    clone.querySelector('.remove-item').onclick = function() {
+        clone.remove();
+        updateTotals();
+    };
+    clone.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateTotals));
+    container.appendChild(clone);
+    updateTotals();
+}
+
+document.querySelectorAll('.qty-input, .price-input').forEach(inp => inp.addEventListener('input', updateTotals));
+</script>
+{% endblock %}

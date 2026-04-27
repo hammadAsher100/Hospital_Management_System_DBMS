@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}New Prescription{% endblock %}
+{% block page_title %}New Prescription{% endblock %}
+
+{% block content %}
+<div class="card hms-card">
+    <div class="card-header hms-card-header"><i class="bi bi-file-plus me-2"></i>Create Prescription</div>
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label required">Patient</label>
+                    <select name="patient_id" class="form-select hms-input" required>
+                        <option value="">Select patient...</option>
+                        {% for p in patients %}
+                        <option value="{{ p.patient_id }}">{{ p.full_name }} — {{ p.phone }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label required">Prescribing Doctor</label>
+                    <select name="doctor_id" class="form-select hms-input" required>
+                        <option value="">Select doctor...</option>
+                        {% for d in doctors %}
+                        <option value="{{ d.doctor_id }}" {% if current_doctor_id == d.doctor_id %}selected{% endif %}>
+                            {{ d.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control hms-input" rows="1" placeholder="General notes..."></textarea>
+                </div>
+            </div>
+
+            <h6 class="fw-semibold mb-3">Medicines</h6>
+            <div id="rxItems">
+                <div class="rx-item-row row g-2 mb-3 align-items-end p-3 border rounded">
+                    <div class="col-md-3">
+                        <label class="form-label small">Medicine</label>
+                        <select name="medicine_id[]" class="form-select form-select-sm hms-input" required>
+                            <option value="">Select...</option>
+                            {% for m in medicines %}
+                            <option value="{{ m.medicine_id }}">{{ m.name }} ({{ m.stock_quantity }} left)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Dosage</label>
+                        <input type="text" name="dosage[]" class="form-control form-control-sm hms-input" placeholder="e.g. 500mg">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Frequency</label>
+                        <input type="text" name="frequency[]" class="form-control form-control-sm hms-input" placeholder="e.g. 3x daily">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Duration</label>
+                        <input type="text" name="duration[]" class="form-control form-control-sm hms-input" placeholder="e.g. 7 days">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Quantity</label>
+                        <input type="number" name="quantity[]" class="form-control form-control-sm hms-input" min="1" value="1">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-rx" style="display:none"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRxItem()">
+                <i class="bi bi-plus-circle me-1"></i>Add Medicine
+            </button>
+
+            <div class="border-top mt-4 pt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-hms-primary">Create Prescription</button>
+                <a href="{{ url_for('pharmacy.list_prescriptions') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addRxItem() {
+    const container = document.getElementById('rxItems');
+    const first = container.querySelector('.rx-item-row');
+    const clone = first.cloneNode(true);
+    clone.querySelectorAll('input').forEach(inp => {
+        inp.value = inp.type === 'number' ? 1 : '';
+    });
+    clone.querySelector('select').value = '';
+    clone.querySelector('.remove-rx').style.display = 'inline-block';
+    clone.querySelector('.remove-rx').onclick = () => clone.remove();
+    container.appendChild(clone);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Medicines{% endblock %}
+{% block page_title %}Medicine Inventory{% endblock %}
+
+{% block content %}
+<div class="card hms-card">
+    <div class="card-header hms-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-capsule me-2"></i>Medicines</span>
+        <div class="d-flex gap-2 flex-wrap">
+            <form class="d-flex gap-2" method="GET">
+                <input type="text" name="search" class="form-control form-control-sm hms-input" placeholder="Search..." value="{{ search }}">
+                <select name="category" class="form-select form-select-sm hms-input" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for c in categories %}
+                    <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+            </form>
+            <a href="{{ url_for('pharmacy.add_medicine') }}" class="btn btn-hms-primary btn-sm">
+                <i class="bi bi-plus me-1"></i>Add Medicine
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if medicines.items %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Name</th><th>Category</th><th>Manufacturer</th><th>Unit Price</th><th>Stock</th><th>Expiry</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                {% for med in medicines.items %}
+                <tr class="{{ 'table-danger bg-danger-subtle' if med.stock_quantity == 0 else ('table-warning bg-warning-subtle' if med.is_low_stock() else '') }}">
+                    <td class="fw-medium">
+                        {{ med.name }}
+                        {% if med.is_low_stock() %}
+                        <span class="badge bg-{{ 'danger' if med.stock_quantity == 0 else 'warning' }} ms-1 small">
+                            {{ 'Out of Stock' if med.stock_quantity == 0 else 'Low' }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ med.category or '—' }}</td>
+                    <td>{{ med.manufacturer or '—' }}</td>
+                    <td class="mono-text">Rs. {{ "%.2f"|format(med.unit_price) }}</td>
+                    <td>
+                        <span class="mono-text fw-medium {{ 'text-danger' if med.stock_quantity == 0 else ('text-warning' if med.is_low_stock() else 'text-success') }}">
+                            {{ med.stock_quantity }}
+                        </span>
+                        <small class="text-muted">/ {{ med.reorder_level }} min</small>
+                    </td>
+                    <td>
+                        {% if med.expiry_date %}
+                        <span class="{{ 'text-danger fw-medium' if med.expiry_date < today else '' }}">
+                            {{ med.expiry_date.strftime('%d %b %Y') }}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('pharmacy.edit_medicine', id=med.medicine_id) }}" class="btn btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <button class="btn btn-outline-success" title="Add Stock"
+                                    onclick="showStockModal({{ med.medicine_id }}, '{{ med.name }}', 'add')">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if medicines.pages > 1 %}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <small class="text-muted">{{ medicines.total }} medicines</small>
+            <nav><ul class="pagination pagination-sm mb-0">
+                {% if medicines.has_prev %}<li class="page-item"><a class="page-link" href="?page={{ medicines.prev_num }}&search={{ search }}&category={{ category }}">«</a></li>{% endif %}
+                {% for p in medicines.iter_pages() %}{% if p %}<li class="page-item {% if p == medicines.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&search={{ search }}&category={{ category }}">{{ p }}</a></li>{% endif %}{% endfor %}
+                {% if medicines.has_next %}<li class="page-item"><a class="page-link" href="?page={{ medicines.next_num }}&search={{ search }}&category={{ category }}">»</a></li>{% endif %}
+            </ul></nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-capsule"></i>
+            <p>No medicines found</p>
+            <a href="{{ url_for('pharmacy.add_medicine') }}" class="btn btn-hms-primary mt-2">Add First Medicine</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stock Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title" id="stockModalTitle">Update Stock</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="POST" id="stockForm">
+                <div class="modal-body">
+                    <input type="hidden" name="action" id="stockAction" value="add">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" name="quantity" class="form-control hms-input" min="1" value="1" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const today = new Date().toISOString().split('T')[0];
+function showStockModal(id, name, action) {
+    document.getElementById('stockModalTitle').textContent = `${action === 'add' ? 'Add' : 'Remove'} Stock — ${name}`;
+    document.getElementById('stockAction').value = action;
+    document.getElementById('stockForm').action = `/pharmacy/medicines/${id}/stock`;
+    new bootstrap.Modal(document.getElementById('stockModal')).show();
+}
+</script>
+{% endblock %}

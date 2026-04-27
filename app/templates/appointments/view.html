@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Appointment #{{ appointment.appointment_id }}{% endblock %}
+{% block page_title %}Appointment Detail{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between">
+                <span><i class="bi bi-calendar-event me-2"></i>Appointment #{{ appointment.appointment_id }}</span>
+                <span class="badge bg-{{ appointment.status_badge }} fs-6">{{ appointment.status.title() }}</span>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Patient</dt>
+                    <dd class="col-sm-8"><a href="{{ url_for('patients.view_patient', id=appointment.patient_id) }}" class="text-decoration-none">{{ appointment.patient.full_name }}</a></dd>
+                    <dt class="col-sm-4">Doctor</dt>
+                    <dd class="col-sm-8">{{ appointment.doctor.full_name }} ({{ appointment.doctor.specialization }})</dd>
+                    <dt class="col-sm-4">Date</dt>
+                    <dd class="col-sm-8">{{ appointment.appointment_date.strftime('%A, %d %B %Y') }}</dd>
+                    <dt class="col-sm-4">Time</dt>
+                    <dd class="col-sm-8 mono-text">{{ appointment.appointment_time.strftime('%H:%M') }}</dd>
+                    <dt class="col-sm-4">Reason</dt>
+                    <dd class="col-sm-8">{{ appointment.reason or '—' }}</dd>
+                    {% if appointment.notes %}
+                    <dt class="col-sm-4">Notes</dt>
+                    <dd class="col-sm-8">{{ appointment.notes }}</dd>
+                    {% endif %}
+                </dl>
+
+                <div class="d-flex flex-wrap gap-2 mt-3 border-top pt-3">
+                    {% if appointment.status == 'scheduled' %}
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal">
+                        <i class="bi bi-check-circle me-1"></i>Mark Complete
+                    </button>
+                    <a href="{{ url_for('appointments.reschedule_appointment', id=appointment.appointment_id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-repeat me-1"></i>Reschedule
+                    </a>
+                    <form method="POST" action="{{ url_for('appointments.cancel_appointment', id=appointment.appointment_id) }}" onsubmit="return confirm('Cancel this appointment?')">
+                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg me-1"></i>Cancel</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('billing.generate_bill') }}?patient_id={{ appointment.patient_id }}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-receipt me-1"></i>Generate Bill
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header">Patient Quick Info</div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="patient-avatar sm">{{ appointment.patient.first_name[0] }}{{ appointment.patient.last_name[0] }}</div>
+                    <div>
+                        <div class="fw-medium">{{ appointment.patient.full_name }}</div>
+                        <small class="text-muted">{{ appointment.patient.age }} yrs, {{ appointment.patient.gender }}</small>
+                    </div>
+                </div>
+                <dl class="row mb-0 small">
+                    <dt class="col-6">Phone</dt><dd class="col-6 mono-text">{{ appointment.patient.phone }}</dd>
+                    <dt class="col-6">Blood Group</dt><dd class="col-6">{{ appointment.patient.blood_group or '—' }}</dd>
+                    <dt class="col-6">Allergies</dt><dd class="col-6 text-danger">{{ appointment.patient.allergies or 'None' }}</dd>
+                </dl>
+                <a href="{{ url_for('patients.view_patient', id=appointment.patient_id) }}" class="btn btn-sm btn-outline-primary w-100 mt-3">
+                    View Full Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Complete Appointment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="POST" action="{{ url_for('appointments.complete_appointment', id=appointment.appointment_id) }}">
+                <div class="modal-body">
+                    <label class="form-label">Doctor's Notes (optional)</label>
+                    <textarea name="notes" class="form-control hms-input" rows="4" placeholder="Diagnosis, observations, follow-up instructions..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Mark as Completed</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Bill #{{ bill.bill_id }}{% endblock %}
+{% block page_title %}Bill Detail{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header d-flex justify-content-between">
+                <span><i class="bi bi-receipt me-2"></i>Bill #{{ bill.bill_id }}</span>
+                <span class="badge bg-{{ bill.status_badge }} fs-6">{{ bill.status.title() }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">Patient</div>
+                        <div class="fw-semibold">{{ bill.patient.full_name }}</div>
+                        <div class="text-muted small">{{ bill.patient.phone }}</div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="text-muted small mb-1">Date</div>
+                        <div class="fw-semibold">{{ bill.bill_date.strftime('%d %B %Y') }}</div>
+                        {% if bill.payment_method %}
+                        <div class="text-muted small">{{ bill.payment_method }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr><th>Description</th><th class="text-center">Qty</th><th class="text-end">Unit Price</th><th class="text-end">Total</th></tr>
+                        </thead>
+                        <tbody>
+                        {% for item in bill.items %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end mono-text">Rs. {{ "%.2f"|format(item.unit_price) }}</td>
+                            <td class="text-end mono-text fw-medium">Rs. {{ "%.2f"|format(item.total_price) }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end mono-text">Rs. {{ "%.2f"|format(bill.total_amount) }}</td></tr>
+                            <tr class="text-success"><td colspan="3" class="text-end">Paid</td><td class="text-end mono-text">Rs. {{ "%.2f"|format(bill.paid_amount) }}</td></tr>
+                            {% if bill.get_balance() > 0 %}
+                            <tr class="text-danger fw-bold"><td colspan="3" class="text-end">Balance Due</td><td class="text-end mono-text">Rs. {{ "%.2f"|format(bill.get_balance()) }}</td></tr>
+                            {% endif %}
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <a href="{{ url_for('billing.print_bill', id=bill.bill_id) }}" class="btn btn-outline-secondary" target="_blank">
+                        <i class="bi bi-printer me-1"></i>Print Invoice
+                    </a>
+                    {% if bill.status != 'paid' %}
+                    <a href="{{ url_for('billing.record_payment', id=bill.bill_id) }}" class="btn btn-hms-primary">
+                        <i class="bi bi-cash me-1"></i>Record Payment
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-outline-secondary ms-auto">Back to Bills</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header">Payment Summary</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Amount</span>
+                    <span class="fw-bold">Rs. {{ "%.2f"|format(bill.total_amount) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Amount Paid</span>
+                    <span class="text-success fw-bold">Rs. {{ "%.2f"|format(bill.paid_amount) }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Balance Due</span>
+                    <span class="fw-bold {{ 'text-danger' if bill.get_balance() > 0 else 'text-success' }}">
+                        Rs. {{ "%.2f"|format(bill.get_balance()) }}
+                    </span>
+                </div>
+                {% if bill.get_balance() > 0 %}
+                <a href="{{ url_for('billing.record_payment', id=bill.bill_id) }}" class="btn btn-success w-100 mt-3">
+                    <i class="bi bi-cash me-1"></i>Pay Now
+                </a>
+                {% else %}
+                <div class="alert alert-success mt-3 mb-0 text-center py-2">
+                    <i class="bi bi-check-circle me-1"></i>Fully Paid
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card hms-card mt-3">
+            <div class="card-header hms-card-header">Patient Info</div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-5">Name</dt><dd class="col-7">{{ bill.patient.full_name }}</dd>
+                    <dt class="col-5">Phone</dt><dd class="col-7 mono-text">{{ bill.patient.phone }}</dd>
+                    <dt class="col-5">Blood</dt><dd class="col-7">{{ bill.patient.blood_group or '—' }}</dd>
+                </dl>
+                <a href="{{ url_for('patients.view_patient', id=bill.patient_id, tab='bills') }}" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                    Patient History
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

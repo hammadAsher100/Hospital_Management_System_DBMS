@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HMS{% endblock %} — MediCore HMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <i class="bi bi-hospital"></i>
+        </div>
+        <div class="brand-text">
+            <span class="brand-name">MediCore</span>
+            <span class="brand-sub">Hospital Management</span>
+        </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="user-avatar">{{ current_user.full_name[0].upper() }}</div>
+        <div class="user-info">
+            <div class="user-name">{{ current_user.full_name }}</div>
+            <div class="user-role badge-role badge-role-{{ current_user.role }}">{{ current_user.role.title() }}</div>
+        </div>
+    </div>
+
+    <ul class="sidebar-nav">
+        <li class="nav-section-label">Main</li>
+        <li>
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('patients.list_patients') }}" class="nav-link {% if 'patients' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-people"></i><span>Patients</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('appointments.list_appointments') }}" class="nav-link {% if 'appointments' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-calendar-check"></i><span>Appointments</span>
+            </a>
+        </li>
+
+        {% if current_user.is_admin() or current_user.is_billing() %}
+        <li class="nav-section-label">Finance</li>
+        <li>
+            <a href="{{ url_for('billing.list_bills') }}" class="nav-link {% if 'billing' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-receipt"></i><span>Billing</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-section-label">Clinical</li>
+        <li>
+            <a href="{{ url_for('pharmacy.dashboard') }}" class="nav-link {% if 'pharmacy' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-capsule"></i><span>Pharmacy</span>
+            </a>
+        </li>
+
+        {% if current_user.is_admin() %}
+        <li class="nav-section-label">Administration</li>
+        <li>
+            <a href="{{ url_for('staff.list_staff') }}" class="nav-link {% if 'staff' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-person-badge"></i><span>Staff</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.report_revenue') }}" class="nav-link {% if 'report' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-bar-chart-line"></i><span>Reports</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-section-label">Account</li>
+        <li>
+            <a href="{{ url_for('auth.profile') }}" class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                <i class="bi bi-person-circle"></i><span>Profile</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger-soft">
+                <i class="bi bi-box-arrow-left"></i><span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main content wrapper -->
+<div class="main-wrapper" id="mainWrapper">
+    <!-- Top bar -->
+    <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+        <div class="topbar-right">
+            <span class="topbar-date">{{ now.strftime('%d %b %Y') if now else '' }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="topbar-logout">
+                <i class="bi bi-power"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Flash messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show hms-alert" role="alert">
+                <i class="bi bi-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'info-circle' if category == 'info' else 'x-circle' }}-fill me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endwith %}
+    </div>
+
+    <!-- Page content -->
+    <main class="page-content">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+{% else %}
+    {% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

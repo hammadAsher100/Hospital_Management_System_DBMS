@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Doctors{% endblock %}
+{% block page_title %}Doctors{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <span class="text-muted">{{ doctors|length }} doctor{{ 's' if doctors|length != 1 }}</span>
+    </div>
+    <a href="{{ url_for('staff.add_doctor') }}" class="btn btn-hms-primary">
+        <i class="bi bi-person-plus me-1"></i>Add Doctor
+    </a>
+</div>
+
+{% if doctors %}
+<div class="row g-4">
+    {% for doctor in doctors %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card hms-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="doctor-avatar">
+                        {{ doctor.first_name[0] }}{{ doctor.last_name[0] }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold fs-6">{{ doctor.full_name }}</div>
+                        <div class="text-muted small">{{ doctor.specialization }}</div>
+                        <span class="badge bg-{{ 'success' if doctor.availability_status else 'secondary' }} mt-1">
+                            {{ 'Available' if doctor.availability_status else 'Unavailable' }}
+                        </span>
+                    </div>
+                </div>
+
+                <dl class="row mb-0 small">
+                    {% if doctor.phone %}
+                    <dt class="col-5 text-muted">Phone</dt>
+                    <dd class="col-7 mono-text">{{ doctor.phone }}</dd>
+                    {% endif %}
+                    {% if doctor.email %}
+                    <dt class="col-5 text-muted">Email</dt>
+                    <dd class="col-7">{{ doctor.email }}</dd>
+                    {% endif %}
+                    <dt class="col-5 text-muted">Consult Fee</dt>
+                    <dd class="col-7 fw-medium">Rs. {{ "%.2f"|format(doctor.consultation_fee) }}</dd>
+                    <dt class="col-5 text-muted">Appointments</dt>
+                    <dd class="col-7">{{ doctor.appointments.count() }} total</dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0 pb-3 px-4">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('staff.manage_schedule', id=doctor.doctor_id) }}"
+                       class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-calendar3 me-1"></i>Schedule
+                    </a>
+                    <a href="{{ url_for('appointments.list_appointments') }}"
+                       class="btn btn-sm btn-outline-secondary flex-fill">
+                        <i class="bi bi-calendar-check me-1"></i>Appointments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card hms-card">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-person-badge"></i>
+            <p>No doctors added yet</p>
+            <a href="{{ url_for('staff.add_doctor') }}" class="btn btn-hms-primary mt-2">Add First Doctor</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.doctor-avatar {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4378f4, #7c3aed);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}

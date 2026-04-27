@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Patient Reports{% endblock %}
+{% block page_title %}Patient Reports{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-content"><div class="stat-number">{{ total }}</div><div class="stat-label">Total Patients</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header"><i class="bi bi-pie-chart me-2"></i>Patients by Gender</div>
+            <div class="card-body"><canvas id="genderChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header"><i class="bi bi-droplet me-2"></i>Patients by Blood Group</div>
+            <div class="card-body"><canvas id="bloodChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.report_revenue') }}" class="btn btn-outline-primary me-2"><i class="bi bi-bar-chart me-1"></i>Revenue Report</a>
+    <a href="{{ url_for('admin.report_inventory') }}" class="btn btn-outline-primary me-2"><i class="bi bi-capsule me-1"></i>Inventory Report</a>
+    <a href="{{ url_for('admin.report_appointments') }}" class="btn btn-outline-primary"><i class="bi bi-calendar me-1"></i>Appointments Report</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const genderData = {{ by_gender | tojson }};
+const bloodData = {{ by_blood | tojson }};
+
+new Chart(document.getElementById('genderChart'), {
+    type: 'doughnut',
+    data: {
+        labels: genderData.map(d => d[0]),
+        datasets: [{ data: genderData.map(d => d[1]), backgroundColor: ['#4378f4','#f43f8c','#a78bfa'] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+new Chart(document.getElementById('bloodChart'), {
+    type: 'bar',
+    data: {
+        labels: bloodData.map(d => d[0] || 'Unknown'),
+        datasets: [{ label: 'Patients', data: bloodData.map(d => d[1]), backgroundColor: '#ef4444', borderRadius: 6 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

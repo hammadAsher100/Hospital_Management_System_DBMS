@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Nurses{% endblock %}
+{% block page_title %}Nurses{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="text-muted">{{ nurses|length }} nurse{{ 's' if nurses|length != 1 }}</span>
+    <a href="{{ url_for('staff.add_nurse') }}" class="btn btn-hms-primary">
+        <i class="bi bi-person-plus me-1"></i>Add Nurse
+    </a>
+</div>
+
+{% if nurses %}
+<div class="card hms-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Assigned Ward</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Active Admissions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for nurse in nurses %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="nurse-avatar">{{ nurse.first_name[0] }}{{ nurse.last_name[0] }}</div>
+                            <span class="fw-medium">{{ nurse.full_name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if nurse.assigned_ward %}
+                        <span class="badge bg-info-subtle text-info">{{ nurse.assigned_ward }}</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="mono-text">{{ nurse.phone or '—' }}</td>
+                    <td>{{ nurse.email or '—' }}</td>
+                    <td>
+                        {% set active = nurse.admissions.filter_by(discharge_date=None).count() %}
+                        <span class="badge bg-{{ 'warning text-dark' if active > 0 else 'secondary' }}">
+                            {{ active }} patient{{ 's' if active != 1 }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card hms-card">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-heart-pulse"></i>
+            <p>No nurses added yet</p>
+            <a href="{{ url_for('staff.add_nurse') }}" class="btn btn-hms-primary mt-2">Add First Nurse</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.nurse-avatar {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}

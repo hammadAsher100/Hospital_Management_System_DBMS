@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if medicine else 'Add' }} Medicine{% endblock %}
+{% block page_title %}{{ 'Edit' if medicine else 'Add' }} Medicine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card hms-card">
+            <div class="card-header hms-card-header">
+                <i class="bi bi-capsule me-2"></i>{{ 'Edit' if medicine else 'Add New' }} Medicine
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label required">Medicine Name</label>
+                            <input type="text" name="name" class="form-control hms-input"
+                                   value="{{ medicine.name if medicine else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <input type="text" name="category" class="form-control hms-input"
+                                   value="{{ medicine.category if medicine else '' }}"
+                                   placeholder="e.g. Antibiotic, Analgesic">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Manufacturer</label>
+                            <input type="text" name="manufacturer" class="form-control hms-input"
+                                   value="{{ medicine.manufacturer if medicine else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Unit Price (Rs.)</label>
+                            <input type="number" name="unit_price" class="form-control hms-input"
+                                   step="0.01" min="0" value="{{ medicine.unit_price if medicine else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Reorder Level (units)</label>
+                            <input type="number" name="reorder_level" class="form-control hms-input"
+                                   min="0" value="{{ medicine.reorder_level if medicine else 10 }}">
+                        </div>
+                        {% if not medicine %}
+                        <div class="col-md-6">
+                            <label class="form-label">Initial Stock Quantity</label>
+                            <input type="number" name="stock_quantity" class="form-control hms-input" min="0" value="0">
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" name="expiry_date" class="form-control hms-input"
+                                   value="{{ medicine.expiry_date.strftime('%Y-%m-%d') if medicine and medicine.expiry_date else '' }}">
+                        </div>
+                        <div class="col-12 border-top pt-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-hms-primary">
+                                <i class="bi bi-check-lg me-1"></i>{{ 'Update' if medicine else 'Add' }} Medicine
+                            </button>
+                            <a href="{{ url_for('pharmacy.list_medicines') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
